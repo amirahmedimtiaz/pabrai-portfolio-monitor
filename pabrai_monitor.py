@@ -135,11 +135,30 @@ def send_email(subject, body):
     except Exception as e:
         print(f"Error sending email: {e}")
 
+def save_historical_snapshot(df):
+    now = datetime.now()
+    quarter = (now.month - 1) // 3 + 1
+    year = now.year
+    history_dir = "history"
+    
+    if not os.path.exists(history_dir):
+        os.makedirs(history_dir)
+    
+    filename = f"{history_dir}/holdings_{year}_Q{quarter}.csv"
+    
+    # Only save if this quarter's file doesn't exist yet
+    if not os.path.exists(filename):
+        print(f"Saving new quarterly snapshot: {filename}")
+        df.to_csv(filename, index=False)
+
 def main():
     if not download_csv(CSV_URL, CURRENT_FILE):
         return
 
     new_df = pd.read_csv(CURRENT_FILE)
+    
+    # Save historical snapshot if needed
+    save_historical_snapshot(new_df)
     
     if os.path.exists(PREVIOUS_FILE):
         old_df = pd.read_csv(PREVIOUS_FILE)
