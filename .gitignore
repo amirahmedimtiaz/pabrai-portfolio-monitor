@@ -1,0 +1,5 @@
+.env
+__pycache__/
+latest_holdings.csv
+myenv/
+.DS_Store

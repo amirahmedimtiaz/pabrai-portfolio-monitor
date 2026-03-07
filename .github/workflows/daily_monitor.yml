@@ -1,0 +1,38 @@
+name: Daily Pabrai Monitor
+
+on:
+  schedule:
+    - cron: '0 14 * * *' # 14:00 UTC is approx 9:00 AM EST (check your timezone offset!)
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Allow GitHub to update previous_holdings.csv
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run script
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+        run: python pabrai_monitor.py
+
+      - name: Commit updated holdings
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add previous_holdings.csv
+          git commit -m "chore: update holdings for comparison" || echo "No changes to holdings"
+          git push
