@@ -33,6 +33,6 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add previous_holdings.csv
-          git commit -m "chore: update holdings for comparison" || echo "No changes to holdings"
+          git add previous_holdings.csv history/ || git add previous_holdings.csv
+          git commit -m "chore: update holdings and historical snapshots" || echo "No changes to commit"
           git push
