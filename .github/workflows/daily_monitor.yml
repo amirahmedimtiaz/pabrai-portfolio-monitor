@@ -2,7 +2,7 @@ name: Daily Pabrai Monitor
 
 on:
   schedule:
-    - cron: '0 14 * * *' # 14:00 UTC is approx 9:00 AM EST (check your timezone offset!)
+    - cron: '0 0 * * *' # 0:00 UTC is exactly 9:00 AM JST
   workflow_dispatch:
 
 jobs:
