@@ -22,6 +22,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Test delivery failure handling without sending email
+        run: python -m unittest discover -s tests -v
+
       - name: Run script
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}

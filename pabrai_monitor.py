@@ -23,14 +23,11 @@ def download_csv(url, filename):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        with open(filename, 'wb') as f:
-            f.write(response.content)
-        return True
-    else:
-        print(f"Failed to download: {response.status_code}")
-        return False
+    response = requests.get(url, headers=headers, timeout=30)
+    response.raise_for_status()
+    with open(filename, 'wb') as f:
+        f.write(response.content)
+    return True
 
 def clean_currency(value):
     if pd.isna(value) or value == "":
@@ -115,9 +112,8 @@ def format_dataframe(df):
     return formatted_df.drop(columns=['numeric_mv'])
 
 def send_email(subject, body):
-    if not GMAIL_USER or not GMAIL_APP_PASSWORD:
-        print("Gmail credentials not set in .env")
-        return
+    if not GMAIL_USER or not GMAIL_APP_PASSWORD or not RECIPIENT_EMAIL:
+        raise RuntimeError("GMAIL_USER, GMAIL_APP_PASSWORD and RECIPIENT_EMAIL must be configured")
 
     msg = MIMEMultipart()
     msg['From'] = GMAIL_USER
@@ -126,14 +122,12 @@ def send_email(subject, body):
 
     msg.attach(MIMEText(body, 'html'))
 
-    try:
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=30) as server:
         server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
-        server.send_message(msg)
-        server.quit()
-        print("Email sent successfully!")
-    except Exception as e:
-        print(f"Error sending email: {e}")
+        refused = server.send_message(msg)
+        if refused:
+            raise smtplib.SMTPRecipientsRefused(refused)
+    print("Email sent successfully!")
 
 def save_historical_snapshot(df):
     now = datetime.now()
